@@ -96,6 +96,7 @@ class PWMServo
                              // Only works for 9 and 10.
     void detach();
     void write(int angleArg); // specify the angle in degrees, 0 to 180
+    void writeMicroseconds(uint32_t value);
     uint8_t read() { return angle; }
     uint8_t attached();
 };

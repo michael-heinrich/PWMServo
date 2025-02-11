@@ -186,6 +186,16 @@ uint8_t PWMServo::attach(int pinArg, int min, int max)
 	return 1;
 }
 
+void PWMServo::detach()
+{
+  if (pin >= NUM_DIGITAL_PINS) return;
+  if (attachedpins[pin >> 5] & (1 << (pin & 31))) {
+    attachedpins[pin >> 5] &= ~(1 << (pin & 31));
+    // set the pin to pull up
+    pinMode(pin, INPUT_PULLUP);
+  }
+}
+
 void PWMServo::write(int angleArg)
 {
 	//Serial.printf("write, pin=%d, angle=%d\n", pin, angleArg);
@@ -215,6 +225,21 @@ uint8_t PWMServo::attached()
 {
 	if (pin >= NUM_DIGITAL_PINS) return 0;
 	return (attachedpins[pin >> 5] & (1 << (pin & 31))) ? 1 : 0;
+}
+
+void PWMServo::writeMicroseconds(uint32_t value)
+{
+    if (pin >= NUM_DIGITAL_PINS) return;
+    noInterrupts();
+    uint32_t oldres = analogWriteResolution(12);
+    // The function expects 'value' to be a pulse width in microseconds.
+    // Convert microseconds to fixed-point representation (value * 256)
+    uint32_t us_fixed = value << 8;
+    // Convert to duty cycle using the same conversion factor as in write():
+    uint32_t duty = (us_fixed * 3355) >> 22;
+    analogWrite(pin, duty);
+    analogWriteResolution(oldres);
+    interrupts();
 }
 
 //======================================================================
@@ -276,5 +301,3 @@ uint8_t PWMServo::attached()
 	return (attachedpins[pin >> 5] & (1 << (pin & 31))) ? 1 : 0;
 }
 #endif
-
-
